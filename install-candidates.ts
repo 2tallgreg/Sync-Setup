@@ -5,9 +5,20 @@ export function selectCompatibleRelease(
 ): string | undefined {
   if (!versions || typeof versions !== "object" || Array.isArray(versions)) return undefined;
   return Object.entries(versions as Record<string, unknown>)
-    .filter(([, minimum]) => typeof minimum === "string" && supportsAppVersion(minimum))
+    .filter(([version, minimum]) => validVersion(version) &&
+      typeof minimum === "string" && !!minimum && supportsAppVersion(minimum))
     .map(([version]) => version)
     .sort((a, b) => compareVersions(b, a))[0];
+}
+
+const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+function validVersion(version: string): boolean {
+  const parsed = versionPattern.exec(version);
+  return !!parsed && !(parsed[4]?.split(".").some(part => /^0\d+$/.test(part)));
+}
+
+function compareNumeric(a: string, b: string): number {
+  return a.length - b.length || (a === b ? 0 : a < b ? -1 : 1);
 }
 
 /** Run async work with a fixed upper bound while retaining input-order results. */
@@ -28,12 +39,10 @@ export async function mapConcurrent<T, R>(
 }
 
 function compareVersions(a: string, b: string): number {
-  const parse = (value: string) => /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(value);
-  const left = parse(a);
-  const right = parse(b);
-  if (!left || !right) return a.localeCompare(b);
+  const left = versionPattern.exec(a)!;
+  const right = versionPattern.exec(b)!;
   for (let i = 1; i <= 3; i++) {
-    const difference = Number(left[i]) - Number(right[i]);
+    const difference = compareNumeric(left[i], right[i]);
     if (difference) return difference;
   }
   if (!left[4] && !right[4]) return 0;
@@ -48,12 +57,12 @@ function compareVersions(a: string, b: string): number {
     const xNumeric = /^\d+$/.test(x);
     const yNumeric = /^\d+$/.test(y);
     if (xNumeric && yNumeric) {
-      const difference = Number(x) - Number(y);
+      const difference = compareNumeric(x, y);
       if (difference) return difference;
     } else if (xNumeric !== yNumeric) {
       return xNumeric ? -1 : 1;
     } else {
-      const difference = x.localeCompare(y);
+      const difference = x === y ? 0 : x < y ? -1 : 1;
       if (difference) return difference;
     }
   }

@@ -132,4 +132,19 @@ test("restore refuses a stale preview if profile or inventory changed", () => {
   assert.doesNotThrow(() => assertPreviewUnchanged("profile", "profile", inventory, [...inventory]));
   assert.throws(() => assertPreviewUnchanged("profile", "new profile", inventory, inventory));
   assert.throws(() => assertPreviewUnchanged("profile", "profile", inventory, []));
+  assert.doesNotThrow(() => assertPreviewUnchanged(null, null, inventory, inventory));
+  assert.throws(() => assertPreviewUnchanged(null, "new profile", inventory, inventory));
+  assert.throws(() => assertPreviewUnchanged(null, null, inventory, []));
+});
+
+test("hand-edited profiles cannot install or disable Obsyncdian", () => {
+  for (const scope of ["everywhere", "desktop", "mobile", "local"] as const) {
+    const profile = fixture();
+    profile.plugins.obsyncdian = { name: "Obsyncdian", enabled: false, scope, desktopOnly: false };
+    for (const device of ["desktop", "mobile"] as const) {
+      const changes = reviewRestore(reconcile(profile, [], device), new Set(["obsyncdian"]), true);
+      assert.equal(changes.find(item => item.id === "obsyncdian")?.kind, "skipped");
+      assert.equal(captureProfile([], profile, device, "Test", profile.updatedAt).plugins.obsyncdian, undefined);
+    }
+  }
 });
