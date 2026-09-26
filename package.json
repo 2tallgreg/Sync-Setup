@@ -1,10 +1,16 @@
 {
   "name": "obsyncdian",
   "version": "0.1.0",
+  "description": "Sync an Obsidian community plugin setup through a vault profile.",
+  "main": "main.js",
   "private": true,
   "scripts": {
     "dev": "esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js --watch",
     "build": "npm run typecheck && esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js",
+    "package": "npm run build && node scripts/package.mjs",
+    "package:check": "node scripts/package.mjs --check",
+    "release:verify": "npm test && npm run lint && npm run package",
+    "version": "node scripts/sync-version.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "node --import tsx --test tests/*.test.ts"
