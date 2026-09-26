@@ -6,8 +6,8 @@ type Manifest = { id: string; name: string; version: string; minAppVersion?: str
 type Manager = {
   manifests?: Record<string, Manifest>;
   enabledPlugins?: Set<string>;
-  enablePluginAndSave?: (id: string) => Promise<void>;
-  disablePluginAndSave?: (id: string) => Promise<void>;
+  enablePluginAndSave?: (id: string) => Promise<void | boolean>;
+  disablePluginAndSave?: (id: string) => Promise<void | boolean>;
   installPlugin?: (repo: string, version: string, manifest: Manifest) => Promise<void>;
 };
 type AppWithManager = App & { plugins?: Manager };
@@ -38,9 +38,14 @@ export class ObsidianPlugins {
   canInstall(): boolean { return typeof this.manager?.installPlugin === "function"; }
 
   async setEnabled(id: string, enabled: boolean): Promise<void> {
+    if (id === "obsyncdian") throw new Error("Obsyncdian cannot manage itself.");
     const method = enabled ? this.manager?.enablePluginAndSave : this.manager?.disablePluginAndSave;
     if (!method) throw new Error("Obsidian cannot change plugin state here.");
-    await method.call(this.manager, id);
+    const result = await method.call(this.manager, id);
+    const plugin = this.inventory().find(plugin => plugin.id === id);
+    if (result === false || !plugin || plugin.enabled !== enabled) {
+      throw new Error(`Obsidian did not ${enabled ? "enable" : "disable"} ${id}.`);
+    }
   }
 
   async findInstallCandidates(
@@ -88,6 +93,7 @@ export class ObsidianPlugins {
   }
 
   async install(candidate: InstallCandidate): Promise<void> {
+    if (candidate.id === "obsyncdian") throw new Error("Obsyncdian cannot manage itself.");
     if (!this.manager?.installPlugin) throw new Error("Plugin installation is unavailable.");
     await this.manager.installPlugin(candidate.repo, candidate.manifest.version, candidate.manifest);
   }
@@ -96,5 +102,7 @@ export class ObsidianPlugins {
 function supportsManifest(manifest: Manifest, id: string): boolean {
   return manifest.id === id && typeof manifest.version === "string" && !!manifest.version &&
     typeof manifest.name === "string" && !!manifest.name &&
-    (!manifest.minAppVersion || requireApiVersion(manifest.minAppVersion));
+    (manifest.isDesktopOnly === undefined || typeof manifest.isDesktopOnly === "boolean") &&
+    (manifest.minAppVersion === undefined ||
+      (typeof manifest.minAppVersion === "string" && !!manifest.minAppVersion && requireApiVersion(manifest.minAppVersion)));
 }

@@ -11,19 +11,35 @@ const scopeNames: Record<Scope, string> = {
 const displayError = (error: unknown): string => error instanceof Error ? error.message : String(error);
 
 class PreviewModal extends Modal {
+  private busy = false;
   constructor(app: App, title: string, body: (element: HTMLElement) => void,
     action: string, onConfirm: () => Promise<void>, private afterClose?: () => void) {
     super(app);
     this.titleEl.setText(title);
     body(this.contentEl);
-    const buttons = new Setting(this.contentEl).addButton(button =>
-      button.setButtonText("Cancel").onClick(() => this.close()));
+    let cancelButton: ButtonComponent | undefined;
+    const buttons = new Setting(this.contentEl).addButton(button => {
+      cancelButton = button.setButtonText("Cancel").onClick(() => this.close());
+    });
     buttons.addButton(button => button.setButtonText(action).setCta().onClick(async () => {
-      button.setDisabled(true);
-      try { await onConfirm(); this.close(); }
-      catch (error) { new Notice(`Obsyncdian: ${displayError(error)}`, 9000); button.setDisabled(false); }
+      if (this.busy) return;
+      this.busy = true;
+      button.setDisabled(true).setButtonText("Applying…");
+      cancelButton?.setDisabled(true);
+      try {
+        await onConfirm();
+        this.busy = false;
+        this.close();
+      } catch (error) {
+        new Notice(`Obsyncdian: ${displayError(error)}`, 9000);
+      } finally {
+        this.busy = false;
+        button.setDisabled(false).setButtonText(action);
+        cancelButton?.setDisabled(false);
+      }
     }));
   }
+  close(): void { if (!this.busy) super.close(); }
   onClose(): void { this.contentEl.empty(); this.afterClose?.(); }
 }
 
@@ -55,6 +71,7 @@ export default class Obsyncdian extends Plugin {
   settings: LocalSettings = { ...defaults };
   private bridge!: ObsidianPlugins;
   private tab!: ObsyncdianSettings;
+  private applying = false;
   get device(): Device { return Platform.isMobileApp ? "mobile" : "desktop"; }
   private get path(): string { return `${this.app.vault.configDir}/obsyncdian-profile.json`; }
 
@@ -72,6 +89,12 @@ export default class Obsyncdian extends Plugin {
   }
 
   async saveSettings(): Promise<void> { await this.saveData(this.settings); }
+  private async applyChanges(work: () => Promise<void>): Promise<void> {
+    if (this.applying) throw new Error("Another change is still being applied. Wait for it to finish, then preview again.");
+    this.applying = true;
+    try { await work(); }
+    finally { this.applying = false; }
+  }
   private async rawProfile(): Promise<string | null> {
     return await this.app.vault.adapter.exists(this.path) ? this.app.vault.adapter.read(this.path) : null;
   }
@@ -96,18 +119,20 @@ export default class Obsyncdian extends Plugin {
     try {
       const before = await this.rawProfile();
       const prior = before === null ? null : parseProfile(before);
+      if (changedScope && !prior) throw new Error("The shared profile is no longer available. Open settings again.");
+      const inventory = changedScope ? null : this.inventory();
       const source = this.settings.deviceName.trim() || (this.device === "mobile" ? "Mobile device" : "Desktop device");
       const proposal = changedScope && prior
         ? { ...prior, updatedAt: new Date().toISOString(),
           plugins: Object.fromEntries(Object.entries(prior.plugins).map(([id, entry]) =>
             [id, id === changedScope.id ? { ...entry, scope: changedScope.scope } : { ...entry }])) }
-        : captureProfile(this.inventory(), prior, this.device, source, new Date().toISOString());
+        : captureProfile(inventory ?? this.inventory(), prior, this.device, source, new Date().toISOString());
       const beforeEntries = prior?.plugins ?? {};
       const added = Object.keys(proposal.plugins).filter(id => !beforeEntries[id]);
       const removed = Object.keys(beforeEntries).filter(id => !proposal.plugins[id]);
       const updated = Object.keys(proposal.plugins).filter(id =>
         beforeEntries[id] && JSON.stringify(beforeEntries[id]) !== JSON.stringify(proposal.plugins[id]));
-      new PreviewModal(this.app, "Use this device as source", el => {
+      new PreviewModal(this.app, changedScope ? "Change plugin scope" : "Use this device as source", el => {
         el.createEl("p", { text: `This will write ${this.path} for your vault sync service to carry to other devices.` });
         el.createEl("p", { text: `${added.length} added · ${updated.length} updated · ${removed.length} removed · ${Object.keys(proposal.plugins).length} total` });
         const list = el.createDiv({ cls: "obsyncdian-preview-list" });
@@ -119,19 +144,24 @@ export default class Obsyncdian extends Plugin {
           for (const id of ids) {
             const row = list.createDiv({ cls: "obsyncdian-preview-row" });
             row.createEl("strong", { text: entries[id].name });
-            row.createSpan({ text: label });
+            const entry = entries[id];
+            const state = `${scopeNames[entry.scope]} · ${entry.enabled ? "Enabled" : "Disabled"}`;
+            const old = beforeEntries[id];
+            const previous = old && label === "Update in profile"
+              ? `${scopeNames[old.scope]} · ${old.enabled ? "Enabled" : "Disabled"} → ` : "";
+            row.createSpan({ text: `${label} · ${previous}${state}` });
           }
         }
         if (removed.length) el.createEl("p", { text: "Removing entries from the profile does not uninstall plugins on any device." });
         el.createEl("p", { text: "Plugin settings and credentials are never copied by this version." });
-      }, "Write shared profile", async () => {
-        if (await this.rawProfile() !== before) throw new Error("Profile changed since preview. Review it again.");
+      }, "Write shared profile", () => this.applyChanges(async () => {
+        assertPreviewUnchanged(before, await this.rawProfile(), inventory ?? [], inventory ? this.inventory() : []);
         if (before !== null) await this.app.vault.adapter.write(
           `${this.app.vault.configDir}/obsyncdian-profile.backup.json`, before
         );
         await this.app.vault.adapter.write(this.path, profileText(proposal));
         new Notice("Obsyncdian profile saved. Your vault sync service can carry it to other devices.");
-      }, () => this.refreshSettings()).open();
+      }), () => this.refreshSettings()).open();
     } catch (error) { new Notice(`Obsyncdian: ${displayError(error)}`, 9000); }
   }
 
@@ -182,7 +212,7 @@ export default class Obsyncdian extends Plugin {
           }
         }
         el.createEl("p", { text: "No plugins will be uninstalled. Existing plugin settings will not be changed. Obsidian may need a restart after installation." });
-      }, actions.length ? "Apply changes" : "Done", async () => {
+      }, actions.length ? "Apply changes" : "Done", () => this.applyChanges(async () => {
         if (!actions.length) return;
         assertPreviewUnchanged(before, await this.rawProfile(), inventory, this.inventory());
         let completed = 0;
@@ -204,7 +234,7 @@ export default class Obsyncdian extends Plugin {
         }
         new Notice(`Obsyncdian: ${completed} changes applied${failures.length ? `; ${failures.length} failed: ${failures.join("; ")}` : "."}`, 12000);
         this.refreshSettings();
-      }).open();
+      })).open();
     } catch (error) { new Notice(`Obsyncdian: ${displayError(error)}`, 9000); }
   }
 

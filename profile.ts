@@ -62,6 +62,7 @@ export function captureProfile(
 ): Profile {
   const plugins: Record<string, ProfilePlugin> = Object.create(null) as Record<string, ProfilePlugin>;
   for (const [id, entry] of Object.entries(prior?.plugins ?? {})) {
+    if (id === "obsyncdian") continue;
     if (!applies(entry.scope, device)) plugins[id] = { ...entry };
   }
   for (const plugin of installed) {
