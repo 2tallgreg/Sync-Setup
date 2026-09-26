@@ -70,6 +70,42 @@ test("capture preserves remote platform and local-only scopes; excludes this plu
   assert.equal(captured.plugins.obsyncdian, undefined);
 });
 
+test("capture preserves installed entries scoped to the other device or local", () => {
+  const prior = fixture();
+  const installed = [
+    { id: "phone", name: "Phone", enabled: false, desktopOnly: false },
+    { id: "git", name: "Obsidian Git", enabled: false, desktopOnly: true },
+    { id: "private", name: "Private", enabled: false, desktopOnly: false }
+  ];
+  const desktop = captureProfile(installed, prior, "desktop", "Windows", "2026-09-27T00:00:00Z");
+  assert.deepEqual(desktop.plugins.phone, prior.plugins.phone);
+  assert.deepEqual(desktop.plugins.private, prior.plugins.private);
+  assert.equal(desktop.plugins.git.enabled, false);
+
+  const mobile = captureProfile(installed, prior, "mobile", "Phone", "2026-09-27T00:00:00Z");
+  assert.deepEqual(mobile.plugins.git, prior.plugins.git);
+  assert.deepEqual(mobile.plugins.private, prior.plugins.private);
+  assert.equal(mobile.plugins.phone.enabled, false);
+});
+
+test("capture clears stale desktop-only metadata from a current manifest", () => {
+  const prior = parseProfile(JSON.stringify({
+    schemaVersion: 2, updatedAt: "2026-09-26T00:00:00Z", sourceDevice: "Mac",
+    plugins: { plugin: { name: "Plugin", enabled: true, scope: "everywhere", desktopOnly: true } }
+  }));
+  const captured = captureProfile([
+    { id: "plugin", name: "Plugin", enabled: true, desktopOnly: false }
+  ], prior, "mobile", "Phone", "2026-09-27T00:00:00Z");
+  assert.equal(captured.plugins.plugin.desktopOnly, false);
+  prior.plugins.plugin.scope = "desktop";
+  const otherDevice = captureProfile([
+    { id: "plugin", name: "Plugin", enabled: false, desktopOnly: false }
+  ], prior, "mobile", "Phone", "2026-09-27T00:00:00Z");
+  assert.equal(otherDevice.plugins.plugin.desktopOnly, false);
+  assert.equal(otherDevice.plugins.plugin.enabled, true);
+  assert.equal(otherDevice.plugins.plugin.scope, "desktop");
+});
+
 test("capture defaults desktop-only plugins to desktop and round-trips readable JSON", () => {
   const captured = captureProfile([
     { id: "git", name: "Obsidian Git", enabled: true, desktopOnly: true }

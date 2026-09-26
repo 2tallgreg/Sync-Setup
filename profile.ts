@@ -67,10 +67,16 @@ export function captureProfile(
   for (const plugin of installed) {
     if (!validId(plugin.id) || plugin.id === "obsyncdian") continue;
     const old = prior?.plugins[plugin.id];
+    // An installed plugin can still be scoped to another device (or local-only).
+    // Preserve its policy and enabled state, but refresh manifest-derived compatibility.
+    if (old && !applies(old.scope, device)) {
+      plugins[plugin.id] = { ...old, desktopOnly: plugin.desktopOnly };
+      continue;
+    }
     plugins[plugin.id] = {
       name: plugin.name, enabled: plugin.enabled,
       scope: old?.scope ?? (plugin.desktopOnly ? "desktop" : "everywhere"),
-      desktopOnly: plugin.desktopOnly || Boolean(old?.desktopOnly)
+      desktopOnly: plugin.desktopOnly
     };
   }
   return { schemaVersion: 2, updatedAt: now, sourceDevice: source, plugins: sorted(plugins) };

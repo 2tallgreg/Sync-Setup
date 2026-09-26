@@ -27,6 +27,30 @@ class PreviewModal extends Modal {
   onClose(): void { this.contentEl.empty(); this.afterClose?.(); }
 }
 
+class LookupModal extends Modal {
+  cancelled = false;
+  private completed = false;
+  private progressEl: HTMLProgressElement;
+  private statusEl: HTMLParagraphElement;
+  constructor(app: App, count: number) {
+    super(app);
+    this.titleEl.setText("Checking for plugins");
+    this.statusEl = this.contentEl.createEl("p", { text: `Looking up install options for ${count} missing ${count === 1 ? "plugin" : "plugins"}. This can take a moment.` });
+    this.progressEl = this.contentEl.createEl("progress", { cls: "obsyncdian-lookup-progress" });
+    this.progressEl.setAttribute("aria-label", "Checking community plugin listings");
+    this.progressEl.removeAttribute("value");
+    this.contentEl.createEl("p", { text: "No changes are being made. Close this window to stop the restore preview." });
+    new Setting(this.contentEl).addButton(button => button.setButtonText("Cancel").onClick(() => this.close()));
+  }
+  updateProgress(completed: number, total: number): void {
+    this.progressEl.max = Math.max(total, 1);
+    this.progressEl.value = Math.min(completed, total);
+    this.statusEl.setText(`Checking install options · ${Math.min(completed, total)} of ${total}`);
+  }
+  finish(): void { this.completed = true; this.close(); }
+  onClose(): void { this.cancelled = !this.completed; this.contentEl.empty(); }
+}
+
 export default class Obsyncdian extends Plugin {
   settings: LocalSettings = { ...defaults };
   private bridge!: ObsidianPlugins;
@@ -111,9 +135,19 @@ export default class Obsyncdian extends Plugin {
       const missing = changes.filter(item => item.kind === "missing");
       let candidates = new Map<string, InstallCandidate>();
       let lookupProblem = "";
-      try {
-        candidates = await this.bridge.findInstallCandidates(missing.map(item => [item.id, item.entry]));
-      } catch (error) { lookupProblem = displayError(error); }
+      if (missing.length) {
+        const lookup = new LookupModal(this.app, missing.length);
+        lookup.open();
+        try {
+          candidates = await this.bridge.findInstallCandidates(
+            missing.map(item => [item.id, item.entry]),
+            (completed, total) => lookup.updateProgress(completed, total)
+          );
+        } catch (error) { lookupProblem = displayError(error); }
+        const wasCancelled = lookup.cancelled;
+        lookup.finish();
+        if (wasCancelled) return;
+      }
       const reviewed = reviewRestore(changes, new Set(candidates.keys()), this.bridge.canChangeState(), lookupProblem || undefined);
       const actions = reviewed.filter(item => isAction(item.kind));
       new PreviewModal(this.app, "Set up this device", el => {

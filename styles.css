@@ -20,6 +20,7 @@
   padding: 9px 0; border-bottom: 1px solid var(--background-modifier-border);
 }
 .obsyncdian-preview-row span { color: var(--text-muted); text-align: right; }
+.obsyncdian-lookup-progress { display: block; width: 100%; margin: 18px 0; accent-color: var(--interactive-accent); }
 @media (max-width: 480px) {
   .obsyncdian-preview-row { flex-direction: column; gap: 2px; }
   .obsyncdian-preview-row span { text-align: left; }

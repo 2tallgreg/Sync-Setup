@@ -1,5 +1,6 @@
 import { App, Platform, requestUrl, requireApiVersion } from "obsidian";
 import type { InstalledPlugin, ProfilePlugin } from "./profile";
+import { mapConcurrent, selectCompatibleRelease } from "./install-candidates";
 
 type Manifest = { id: string; name: string; version: string; minAppVersion?: string; isDesktopOnly?: boolean };
 type Manager = {
@@ -42,7 +43,9 @@ export class ObsidianPlugins {
     await method.call(this.manager, id);
   }
 
-  async findInstallCandidates(entries: Array<[string, ProfilePlugin]>): Promise<Map<string, InstallCandidate>> {
+  async findInstallCandidates(
+    entries: Array<[string, ProfilePlugin]>, onProgress?: (completed: number, total: number) => void
+  ): Promise<Map<string, InstallCandidate>> {
     const candidates = new Map<string, InstallCandidate>();
     if (!entries.length || !this.canInstall()) return candidates;
     const response = await requestUrl("https://raw.githubusercontent.com/obsidianmd/obsidian-releases/HEAD/community-plugins.json");
@@ -53,21 +56,34 @@ export class ObsidianPlugins {
       if (typeof item?.id === "string" && typeof item.repo === "string" &&
           /^[\w.-]+\/[\w.-]+$/.test(item.repo)) directory.set(item.id, item.repo);
     }
-    for (const [id] of entries) {
+    let completed = 0;
+    const found = await mapConcurrent(entries, 4, async ([id]) => {
       const repo = directory.get(id);
-      if (!repo) continue;
+      if (!repo) {
+        onProgress?.(++completed, entries.length);
+        return undefined;
+      }
       try {
-        const result = await requestUrl(`https://raw.githubusercontent.com/${repo}/HEAD/manifest.json`);
+        let result = await requestUrl(`https://raw.githubusercontent.com/${repo}/HEAD/manifest.json`);
         const manifest: unknown = result.json;
-        if (!manifest || typeof manifest !== "object") continue;
-        const m = manifest as Manifest;
-        if (m.id !== id || typeof m.version !== "string" || !m.version ||
-            typeof m.name !== "string" || !m.name ||
-            (m.minAppVersion && !requireApiVersion(m.minAppVersion)) ||
-            (Platform.isMobileApp && m.isDesktopOnly === true)) continue;
-        candidates.set(id, { id, repo, manifest: m });
-      } catch { /* A missing or unreachable manifest stays in the skipped group. */ }
-    }
+        if (manifest && typeof manifest === "object" &&
+            !supportsManifest(manifest as Manifest, id)) {
+          const versionsResponse = await requestUrl(`https://raw.githubusercontent.com/${repo}/HEAD/versions.json`);
+          const release = selectCompatibleRelease(versionsResponse.json, requireApiVersion);
+          if (!release) return undefined;
+          result = await requestUrl(`https://raw.githubusercontent.com/${repo}/${release}/manifest.json`);
+        }
+        const m: unknown = result.json;
+        if (!m || typeof m !== "object" || !supportsManifest(m as Manifest, id) ||
+            (Platform.isMobileApp && (m as Manifest).isDesktopOnly === true)) return undefined;
+        return { id, repo, manifest: m as Manifest };
+      } catch { /* Missing or unreachable per-plugin metadata stays skipped. */
+        return undefined;
+      } finally {
+        onProgress?.(++completed, entries.length);
+      }
+    });
+    for (const candidate of found) if (candidate) candidates.set(candidate.id, candidate);
     return candidates;
   }
 
@@ -75,4 +91,10 @@ export class ObsidianPlugins {
     if (!this.manager?.installPlugin) throw new Error("Plugin installation is unavailable.");
     await this.manager.installPlugin(candidate.repo, candidate.manifest.version, candidate.manifest);
   }
+}
+
+function supportsManifest(manifest: Manifest, id: string): boolean {
+  return manifest.id === id && typeof manifest.version === "string" && !!manifest.version &&
+    typeof manifest.name === "string" && !!manifest.name &&
+    (!manifest.minAppVersion || requireApiVersion(manifest.minAppVersion));
 }
