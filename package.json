@@ -1,1 +1,21 @@
-{"name":"obsyncdian","version":"0.1.0","private":true,"scripts":{"dev":"esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js --watch","build":"tsc --noEmit && esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js"},"devDependencies":{"@types/node":"^22.0.0","esbuild":"^0.25.0","obsidian":"latest","typescript":"^5.7.0"}}
+{
+  "name": "obsyncdian",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js --watch",
+    "build": "npm run typecheck && esbuild main.ts --bundle --external:obsidian --format=cjs --target=es2018 --outfile=main.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "node --import tsx --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "eslint": "^9.0.0",
+    "obsidian": "^1.13.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}

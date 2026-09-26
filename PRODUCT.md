@@ -19,7 +19,7 @@ Obsyncdian makes the environment around a vault portable: community plugins, ena
 4. Support scopes: everywhere, desktop, mobile, local.
 5. Show missing plugins and enabled-state drift without making destructive changes.
 6. Add restore/install behind an explicit confirmation flow.
-7. Add settings sync only as an opt-in, backed-up operation with credential-key filtering.
+7. Investigate settings sync. Defer it until users can opt into individual plugins and keys, review values, and back up the replaced values safely. Filtering key names alone cannot guarantee secrets stay private.
 
 ## Important implementation note
 Obsidian does not expose every community-plugin management operation through a stable public API. Private API access should stay isolated behind a small adapter so it can be replaced if official APIs arrive.
