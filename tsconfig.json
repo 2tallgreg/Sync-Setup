@@ -1,0 +1,1 @@
+{"compilerOptions":{"module":"ESNext","target":"ES6","strict":true,"noUnusedLocals":true,"moduleResolution":"node","esModuleInterop":true,"lib":["DOM","ES2015"],"skipLibCheck":true},"include":["**/*.ts"]}
