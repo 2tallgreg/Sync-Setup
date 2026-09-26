@@ -28,15 +28,34 @@ export async function mapConcurrent<T, R>(
 }
 
 function compareVersions(a: string, b: string): number {
-  const parse = (value: string): number[] => value.split(/[.+-]/).map(part => {
-    const digits = part.match(/^\d+/)?.[0];
-    return digits ? Number(digits) : 0;
-  });
+  const parse = (value: string) => /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(value);
   const left = parse(a);
   const right = parse(b);
-  for (let i = 0; i < Math.max(left.length, right.length); i++) {
-    const difference = (left[i] ?? 0) - (right[i] ?? 0);
+  if (!left || !right) return a.localeCompare(b);
+  for (let i = 1; i <= 3; i++) {
+    const difference = Number(left[i]) - Number(right[i]);
     if (difference) return difference;
   }
-  return a.localeCompare(b);
+  if (!left[4] && !right[4]) return 0;
+  if (!left[4]) return 1;
+  if (!right[4]) return -1;
+
+  const leftIdentifiers = left[4].split(".");
+  const rightIdentifiers = right[4].split(".");
+  for (let i = 0; i < Math.min(leftIdentifiers.length, rightIdentifiers.length); i++) {
+    const x = leftIdentifiers[i];
+    const y = rightIdentifiers[i];
+    const xNumeric = /^\d+$/.test(x);
+    const yNumeric = /^\d+$/.test(y);
+    if (xNumeric && yNumeric) {
+      const difference = Number(x) - Number(y);
+      if (difference) return difference;
+    } else if (xNumeric !== yNumeric) {
+      return xNumeric ? -1 : 1;
+    } else {
+      const difference = x.localeCompare(y);
+      if (difference) return difference;
+    }
+  }
+  return leftIdentifiers.length - rightIdentifiers.length;
 }
