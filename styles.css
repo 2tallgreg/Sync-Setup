@@ -1,19 +1,35 @@
-.obsyncdian-settings { max-width: 720px; }
-.obsyncdian-settings > p { color: var(--text-muted); }
+.obsyncdian-settings { max-width: 760px; padding-bottom: 32px; }
+.obsyncdian-settings > p, .obsyncdian-scopes > p { color: var(--text-muted); }
+.obsyncdian-settings > h3 { margin: 28px 0 8px; }
 .obsyncdian-status {
-  padding: 18px;
+  padding: 20px;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m);
   background: var(--background-secondary);
-  line-height: 1.5;
-  margin: 16px 0 22px;
+  margin: 20px 0 24px;
 }
+.obsyncdian-status h3 { margin: 6px 0; }
+.obsyncdian-status p { margin: 6px 0 0; color: var(--text-muted); line-height: 1.5; }
+.obsyncdian-status-error { border-color: var(--text-error); }
+.obsyncdian-status-error details { margin-top: 12px; color: var(--text-muted); }
+.obsyncdian-eyebrow { color: var(--text-muted); font-size: var(--font-smaller); }
+.obsyncdian-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.obsyncdian-count {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 6px 10px; border-radius: var(--radius-s);
+  background: var(--background-primary); font-size: var(--font-smaller);
+}
+.obsyncdian-count strong { font-size: var(--font-ui-medium); }
+.obsyncdian-comparison > h3, .obsyncdian-scopes > h3 { margin: 24px 0 8px; }
 .obsyncdian-group {
   border-bottom: 1px solid var(--background-modifier-border);
-  padding: 10px 0;
+  padding: 12px 0;
 }
-.obsyncdian-group summary { cursor: pointer; font-weight: 600; }
-.obsyncdian-item { padding: 7px 10px; color: var(--text-muted); }
+.obsyncdian-group summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.obsyncdian-group summary:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 3px; }
+.obsyncdian-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; }
+.obsyncdian-item-detail { color: var(--text-muted); text-align: right; }
+.obsyncdian-item, .obsyncdian-preview-row, .obsyncdian-status { overflow-wrap: anywhere; }
 .obsyncdian-preview-list { max-height: 45vh; overflow: auto; margin: 16px 0; }
 .obsyncdian-preview-row {
   display: flex; justify-content: space-between; gap: 16px;
@@ -22,6 +38,6 @@
 .obsyncdian-preview-row span { color: var(--text-muted); text-align: right; }
 .obsyncdian-lookup-progress { display: block; width: 100%; margin: 18px 0; accent-color: var(--interactive-accent); }
 @media (max-width: 480px) {
-  .obsyncdian-preview-row { flex-direction: column; gap: 2px; }
-  .obsyncdian-preview-row span { text-align: left; }
+  .obsyncdian-preview-row, .obsyncdian-item { flex-direction: column; gap: 2px; }
+  .obsyncdian-preview-row span, .obsyncdian-item-detail { text-align: left; }
 }
