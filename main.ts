@@ -161,7 +161,7 @@ export default class Obsyncdian extends Plugin {
       const reviewed = reviewRestore(changes, new Set(candidates.keys()), this.bridge.canChangeState(), lookupProblem || undefined);
       const actions = reviewed.filter(item => isAction(item.kind));
       new PreviewModal(this.app, "Set up this device", el => {
-        el.createEl("p", { text: `Profile from ${profile.sourceDevice} · ${this.device} · ${profile.updatedAt}` });
+        el.createEl("p", { text: `Profile from ${profile.sourceDevice} · ${this.device} · Updated ${new Date(profile.updatedAt).toLocaleString()}` });
         el.createEl("p", { text: `${actions.length} changes · ${reviewed.filter(i => i.kind === "match").length} matching · ${reviewed.filter(i => i.kind === "skipped").length} skipped` });
         const list = el.createEl("div", { cls: "obsyncdian-preview-list" });
         for (const [kind, label] of [
