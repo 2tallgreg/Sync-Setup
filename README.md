@@ -36,6 +36,13 @@ npm test
 npm run lint
 npm run typecheck
 npm run build
+npm run package
 ```
 
 The pure `profile.ts` module validates schema 2 and migrates the initial schema 1 profile in memory. Saving writes schema 2. `reconcile.ts` computes a device-aware preview. `obsidian-adapter.ts` contains all private Obsidian plugin-manager access and directory lookup. `main.ts` handles vault I/O and the explicit preview/apply workflows, rechecking the profile and local inventory immediately before restoring. See `PRODUCT.md` for product direction.
+
+## Release package
+
+`npm run package` builds the plugin and stages exactly the three files Obsidian installs from a GitHub release: `main.js`, `manifest.json`, and `styles.css`. The release workflow runs the full verification set when an exact version tag is pushed, verifies that it matches the manifest, and uploads those assets to the GitHub release. Use `npm version patch`, `npm version minor`, or `npm version major` to keep `package.json`, `manifest.json`, and `versions.json` aligned before committing and tagging.
+
+For Community Directory publication, Obsidian requires a license and applies naming rules to the display name as well as the ID. The current display name, `Obsyncdian`, is likely to be considered a variation of “Obsidian”; choose a compliant public name before submitting it to the directory.
