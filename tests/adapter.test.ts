@@ -15,6 +15,11 @@ test("versions.json selects the newest release supported by the current app", ()
   assert.equal(selectCompatibleRelease([], () => true), undefined);
 });
 
+test("versions.json prefers stable releases over prereleases of the same version", () => {
+  assert.equal(selectCompatibleRelease({ "1.0.0": "1.0.0", "1.0.0-beta": "1.0.0" }, () => true), "1.0.0");
+  assert.equal(selectCompatibleRelease({ "1.0.0-beta.2": "1.0.0", "1.0.0-beta.10": "1.0.0" }, () => true), "1.0.0-beta.10");
+});
+
 test("bounded mapping limits simultaneous requests and preserves input order", async () => {
   let active = 0;
   let peak = 0;
