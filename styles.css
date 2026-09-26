@@ -1,0 +1,26 @@
+.obsyncdian-settings { max-width: 720px; }
+.obsyncdian-settings > p { color: var(--text-muted); }
+.obsyncdian-status {
+  padding: 18px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-secondary);
+  line-height: 1.5;
+  margin: 16px 0 22px;
+}
+.obsyncdian-group {
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: 10px 0;
+}
+.obsyncdian-group summary { cursor: pointer; font-weight: 600; }
+.obsyncdian-item { padding: 7px 10px; color: var(--text-muted); }
+.obsyncdian-preview-list { max-height: 45vh; overflow: auto; margin: 16px 0; }
+.obsyncdian-preview-row {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 9px 0; border-bottom: 1px solid var(--background-modifier-border);
+}
+.obsyncdian-preview-row span { color: var(--text-muted); text-align: right; }
+@media (max-width: 480px) {
+  .obsyncdian-preview-row { flex-direction: column; gap: 2px; }
+  .obsyncdian-preview-row span { text-align: left; }
+}
