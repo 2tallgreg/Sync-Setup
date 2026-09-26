@@ -251,9 +251,27 @@ class ObsyncdianSettings extends PluginSettingTab {
     }
     const scopesArea = el.createDiv({ cls: "obsyncdian-scopes" });
     status.createEl("h3", { text: "Checking this device…" });
+    const showError = (title: string, message: string, error: unknown): void => {
+      if (renderId !== this.renderId || !el.isConnected) return;
+      restoreButton?.setDisabled(true);
+      sourceButton?.setDisabled(true);
+      status.empty();
+      status.addClass("obsyncdian-status-error");
+      status.createEl("h3", { text: title });
+      status.createEl("p", { text: message });
+      const details = status.createEl("details");
+      details.createEl("summary", { text: "Error details" });
+      details.createEl("p", { text: displayError(error) });
+    };
     void (async () => {
+      let profile: Profile | null;
       try {
-        const profile = await this.plugin.profile();
+        profile = await this.plugin.profile();
+      } catch (error) {
+        showError("Profile needs attention", "The shared profile could not be read. Check it in your vault or restore a backup before continuing.", error);
+        return;
+      }
+      try {
         if (renderId !== this.renderId || !el.isConnected) return;
         status.empty();
         status.createDiv({ text: `${this.plugin.device === "mobile" ? "Mobile" : "Desktop"} device · Shared profile`, cls: "obsyncdian-eyebrow" });
@@ -280,16 +298,7 @@ class ObsyncdianSettings extends PluginSettingTab {
         this.drawList(comparison, differences);
         if (this.plugin.settings.showAdvanced) this.drawScopes(scopesArea, profile);
       } catch (error) {
-        if (renderId !== this.renderId || !el.isConnected) return;
-        restoreButton?.setDisabled(true);
-        sourceButton?.setDisabled(true);
-        status.empty();
-        status.addClass("obsyncdian-status-error");
-        status.createEl("h3", { text: "Profile needs attention" });
-        status.createEl("p", { text: "The shared profile could not be read. Check it in your vault or restore a backup before continuing." });
-        const details = status.createEl("details");
-        details.createEl("summary", { text: "Error details" });
-        details.createEl("p", { text: displayError(error) });
+        showError("Couldn't check this device", "The shared profile is readable, but Obsyncdian could not check installed plugins on this device. No changes were made.", error);
       }
     })();
   }
