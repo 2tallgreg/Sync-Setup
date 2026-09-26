@@ -20,6 +20,17 @@ test("versions.json prefers stable releases over prereleases of the same version
   assert.equal(selectCompatibleRelease({ "1.0.0-beta.2": "1.0.0", "1.0.0-beta.10": "1.0.0" }, () => true), "1.0.0-beta.10");
 });
 
+test("release selection rejects malformed tags and uses exact SemVer precedence", () => {
+  const select = (versions: string[]) => selectCompatibleRelease(
+    Object.fromEntries(versions.map(version => [version, "1.0.0"])), () => true
+  );
+  assert.equal(select(["latest", "999.0.0-01", "01.0.0", "2.0.0-", "1.0.0"]), "1.0.0");
+  assert.equal(select(["1.0.0-BETA", "1.0.0-alpha"]), "1.0.0-alpha");
+  assert.equal(select(["1.0.0-beta.9007199254740992", "1.0.0-beta.9007199254740993"]), "1.0.0-beta.9007199254740993");
+  assert.equal(select(["1.0.0+build.1", "1.0.0-beta+build.999"]), "1.0.0+build.1");
+  assert.equal(select(["latest", "1.0"]), undefined);
+});
+
 test("bounded mapping limits simultaneous requests and preserves input order", async () => {
   let active = 0;
   let peak = 0;

@@ -77,7 +77,12 @@ export default class Obsyncdian extends Plugin {
 
   async onload(): Promise<void> {
     this.bridge = new ObsidianPlugins(this.app);
-    this.settings = { ...defaults, ...await this.loadData() as Partial<LocalSettings> };
+    const loaded: unknown = await this.loadData();
+    const saved = loaded && typeof loaded === "object" ? loaded as Partial<LocalSettings> : {};
+    this.settings = {
+      deviceName: typeof saved.deviceName === "string" ? saved.deviceName.slice(0, 80) : "",
+      showAdvanced: saved.showAdvanced === true
+    };
     this.tab = new ObsyncdianSettings(this.app, this);
     this.addSettingTab(this.tab);
     this.addCommand({ id: "use-device-as-source", name: "Use this device as source",
