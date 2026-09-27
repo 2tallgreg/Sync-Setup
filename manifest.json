@@ -1,6 +1,6 @@
 {
   "id": "obsyncdian",
-  "name": "VaultDeck",
+  "name": "Sync Setup",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
   "description": "Carry your community plugin setup between devices using a profile in your synced vault.",

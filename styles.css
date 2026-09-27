@@ -1,43 +1,43 @@
-.vaultdeck-settings { max-width: 760px; padding-bottom: 32px; }
-.vaultdeck-settings > p, .vaultdeck-scopes > p { color: var(--text-muted); }
-.vaultdeck-settings > h3 { margin: 28px 0 8px; }
-.vaultdeck-status {
+.sync-setup-settings { max-width: 760px; padding-bottom: 32px; }
+.sync-setup-settings > p, .sync-setup-scopes > p { color: var(--text-muted); }
+.sync-setup-settings > h3 { margin: 28px 0 8px; }
+.sync-setup-status {
   padding: 20px;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m);
   background: var(--background-secondary);
   margin: 20px 0 24px;
 }
-.vaultdeck-status h3 { margin: 6px 0; }
-.vaultdeck-status p { margin: 6px 0 0; color: var(--text-muted); line-height: 1.5; }
-.vaultdeck-status-error { border-color: var(--text-error); }
-.vaultdeck-status-error details { margin-top: 12px; color: var(--text-muted); }
-.vaultdeck-eyebrow { color: var(--text-muted); font-size: var(--font-smaller); }
-.vaultdeck-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.vaultdeck-count {
+.sync-setup-status h3 { margin: 6px 0; }
+.sync-setup-status p { margin: 6px 0 0; color: var(--text-muted); line-height: 1.5; }
+.sync-setup-status-error { border-color: var(--text-error); }
+.sync-setup-status-error details { margin-top: 12px; color: var(--text-muted); }
+.sync-setup-eyebrow { color: var(--text-muted); font-size: var(--font-smaller); }
+.sync-setup-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.sync-setup-count {
   display: flex; align-items: baseline; gap: 6px;
   padding: 6px 10px; border-radius: var(--radius-s);
   background: var(--background-primary); font-size: var(--font-smaller);
 }
-.vaultdeck-count strong { font-size: var(--font-ui-medium); }
-.vaultdeck-comparison > h3, .vaultdeck-scopes > h3 { margin: 24px 0 8px; }
-.vaultdeck-group {
+.sync-setup-count strong { font-size: var(--font-ui-medium); }
+.sync-setup-comparison > h3, .sync-setup-scopes > h3 { margin: 24px 0 8px; }
+.sync-setup-group {
   border-bottom: 1px solid var(--background-modifier-border);
   padding: 12px 0;
 }
-.vaultdeck-group summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
-.vaultdeck-group summary:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 3px; }
-.vaultdeck-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; }
-.vaultdeck-item-detail { color: var(--text-muted); text-align: right; }
-.vaultdeck-item, .vaultdeck-preview-row, .vaultdeck-status { overflow-wrap: anywhere; }
-.vaultdeck-preview-list { max-height: 45vh; overflow: auto; margin: 16px 0; }
-.vaultdeck-preview-row {
+.sync-setup-group summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.sync-setup-group summary:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 3px; }
+.sync-setup-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; }
+.sync-setup-item-detail { color: var(--text-muted); text-align: right; }
+.sync-setup-item, .sync-setup-preview-row, .sync-setup-status { overflow-wrap: anywhere; }
+.sync-setup-preview-list { max-height: 45vh; overflow: auto; margin: 16px 0; }
+.sync-setup-preview-row {
   display: flex; justify-content: space-between; gap: 16px;
   padding: 9px 0; border-bottom: 1px solid var(--background-modifier-border);
 }
-.vaultdeck-preview-row span { color: var(--text-muted); text-align: right; }
-.vaultdeck-lookup-progress { display: block; width: 100%; margin: 18px 0; accent-color: var(--interactive-accent); }
+.sync-setup-preview-row span { color: var(--text-muted); text-align: right; }
+.sync-setup-lookup-progress { display: block; width: 100%; margin: 18px 0; accent-color: var(--interactive-accent); }
 @media (max-width: 480px) {
-  .vaultdeck-preview-row, .vaultdeck-item { flex-direction: column; gap: 2px; }
-  .vaultdeck-preview-row span, .vaultdeck-item-detail { text-align: left; }
+  .sync-setup-preview-row, .sync-setup-item { flex-direction: column; gap: 2px; }
+  .sync-setup-preview-row span, .sync-setup-item-detail { text-align: left; }
 }
