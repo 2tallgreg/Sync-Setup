@@ -1,1 +1,9 @@
-{"id":"obsyncdian","name":"Obsyncdian","version":"0.1.0","minAppVersion":"1.5.0","description":"Keep your Obsidian plugin setup in sync across devices.","author":"2tallgreg","isDesktopOnly":false}
+{
+  "id": "obsyncdian",
+  "name": "VaultDeck",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.0",
+  "description": "Carry your community plugin setup between devices using a profile in your synced vault.",
+  "author": "2tallgreg",
+  "isDesktopOnly": false
+}

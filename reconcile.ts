@@ -11,7 +11,7 @@ export interface Difference {
 export function reconcile(profile: Profile, installed: InstalledPlugin[], device: Device): Difference[] {
   const local = new Map(installed.map(plugin => [plugin.id, plugin]));
   return Object.entries(profile.plugins).map(([id, entry]): Difference => {
-    if (id === "obsyncdian") return { id, entry, kind: "skipped", reason: "Obsyncdian cannot manage itself" };
+    if (id === "obsyncdian") return { id, entry, kind: "skipped", reason: "VaultDeck cannot manage itself" };
     if (!applies(entry.scope, device)) return { id, entry, kind: "skipped",
       reason: entry.scope === "local" ? "Local only" : `Only on ${entry.scope}` };
     if (device === "mobile" && entry.desktopOnly) return { id, entry, kind: "skipped", reason: "Desktop-only plugin" };

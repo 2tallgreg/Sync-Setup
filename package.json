@@ -1,5 +1,5 @@
 {
-  "name": "obsyncdian",
+  "name": "vaultdeck",
   "version": "0.1.0",
   "description": "Sync an Obsidian community plugin setup through a vault profile.",
   "main": "main.js",

@@ -61,7 +61,7 @@ test("capture preserves remote platform and local-only scopes; excludes this plu
   const captured = captureProfile([
     { id: "calendar", name: "Calendar", enabled: false, desktopOnly: false },
     { id: "private", name: "Private", enabled: true, desktopOnly: false },
-    { id: "obsyncdian", name: "Obsyncdian", enabled: true, desktopOnly: false }
+    { id: "obsyncdian", name: "VaultDeck", enabled: true, desktopOnly: false }
   ], fixture(), "desktop", "Windows", "2026-09-27T00:00:00Z");
   assert.equal(captured.plugins.calendar.enabled, false);
   assert.equal(captured.plugins.phone.scope, "mobile");
@@ -137,10 +137,10 @@ test("restore refuses a stale preview if profile or inventory changed", () => {
   assert.throws(() => assertPreviewUnchanged(null, null, inventory, []));
 });
 
-test("hand-edited profiles cannot install or disable Obsyncdian", () => {
+test("hand-edited profiles cannot install or disable VaultDeck", () => {
   for (const scope of ["everywhere", "desktop", "mobile", "local"] as const) {
     const profile = fixture();
-    profile.plugins.obsyncdian = { name: "Obsyncdian", enabled: false, scope, desktopOnly: false };
+    profile.plugins.obsyncdian = { name: "VaultDeck", enabled: false, scope, desktopOnly: false };
     for (const device of ["desktop", "mobile"] as const) {
       const changes = reviewRestore(reconcile(profile, [], device), new Set(["obsyncdian"]), true);
       assert.equal(changes.find(item => item.id === "obsyncdian")?.kind, "skipped");
