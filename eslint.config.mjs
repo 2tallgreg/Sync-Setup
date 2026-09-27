@@ -1,7 +1,7 @@
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["main.js", "node_modules", "*.map"] },
+  { ignores: ["main.js", "node_modules", "release", "*.map"] },
   ...tseslint.configs.recommended,
   { rules: { "@typescript-eslint/no-explicit-any": "error" } }
 );
