@@ -12,13 +12,13 @@ Carry your Obsidian community plugin setup between devices using the vault sync 
 
 ## Install
 
-After Sync Setup is listed in Obsidian's Community Plugins directory:
+Once Sync Setup is listed in Obsidian's Community Plugins directory:
 
 1. In Obsidian, open **Settings → Community plugins → Browse**.
 2. Search for **Sync Setup**, install it, and enable it.
 3. Open **Settings → Sync Setup**.
 
-Until then, install the files from a GitHub release into `<vault>/<config-folder>/plugins/obsyncdian/`. The release contains `main.js`, `manifest.json`, and `styles.css`. Restart Obsidian and enable Sync Setup under **Community plugins**.
+For a GitHub release, download `main.js`, `manifest.json`, and `styles.css` from the release whose tag matches the version in `manifest.json`. Place them in `<vault>/<config-folder>/plugins/obsyncdian/`, restart Obsidian, then enable Sync Setup under **Community plugins**.
 
 ## Set up devices
 
@@ -47,6 +47,10 @@ npm test
 npm run lint
 npm run typecheck
 ```
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and pull-request guidance. To report a security issue privately, use GitHub's **Security** tab for this repository rather than a public issue.
 
 ## License
 
