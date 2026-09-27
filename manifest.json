@@ -1,7 +1,7 @@
 {
   "id": "obsyncdian",
   "name": "Sync Setup",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "minAppVersion": "1.5.0",
   "description": "Carry your community plugin setup between devices using a profile in your synced vault.",
   "author": "2tallgreg",
