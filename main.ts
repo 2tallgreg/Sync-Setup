@@ -265,12 +265,12 @@ class SyncSetupSettings extends PluginSettingTab {
     const renderId = ++this.renderId;
     el.empty();
     el.addClass("sync-setup-settings");
-    el.createEl("h2", { text: "Sync Setup" });
+    new Setting(el).setName("Sync Setup").setHeading();
     el.createEl("p", { text: "Your plugin setup, carried by your vault." });
     const status = el.createDiv({ cls: "sync-setup-status" });
     status.setAttribute("aria-live", "polite");
     const comparison = el.createDiv({ cls: "sync-setup-comparison" });
-    el.createEl("h3", { text: "Sync actions" });
+    new Setting(el).setName("Sync actions").setHeading();
     let restoreButton: ButtonComponent | undefined;
     new Setting(el).setName("Set up this device like your other devices")
       .setDesc("Review plugin installations and enabled state before applying changes.")
@@ -294,14 +294,14 @@ class SyncSetupSettings extends PluginSettingTab {
       el.createEl("p", { text: "Settings sync is unavailable in this release. Third-party settings can contain secrets even under ordinary names; none are exported or overwritten." });
     }
     const scopesArea = el.createDiv({ cls: "sync-setup-scopes" });
-    status.createEl("h3", { text: "Checking this device…" });
+    new Setting(status).setName("Checking this device…").setHeading();
     const showError = (title: string, message: string, error: unknown): void => {
       if (renderId !== this.renderId || !el.isConnected) return;
       restoreButton?.setDisabled(true);
       sourceButton?.setDisabled(true);
       status.empty();
       status.addClass("sync-setup-status-error");
-      status.createEl("h3", { text: title });
+      new Setting(status).setName(title).setHeading();
       status.createEl("p", { text: message });
       const details = status.createEl("details");
       details.createEl("summary", { text: "Error details" });
@@ -320,7 +320,7 @@ class SyncSetupSettings extends PluginSettingTab {
         status.empty();
         status.createDiv({ text: `${this.plugin.device === "mobile" ? "Mobile" : "Desktop"} device · Shared profile`, cls: "sync-setup-eyebrow" });
         if (!profile) {
-          status.createEl("h3", { text: "Start with this device" });
+          new Setting(status).setName("Start with this device").setHeading();
           status.createEl("p", { text: "No shared profile yet. Use this device as source to share its plugin setup through your vault." });
           return;
         }
@@ -328,7 +328,7 @@ class SyncSetupSettings extends PluginSettingTab {
         restoreButton?.setDisabled(false);
         const count = (kind: Difference["kind"]) => differences.filter(item => item.kind === kind).length;
         const pending = count("missing") + count("enable") + count("disable");
-        status.createEl("h3", { text: pending ? "Changes available for this device" : "No changes to apply on this device" });
+        new Setting(status).setName(pending ? "Changes available for this device" : "No changes to apply on this device").setHeading();
         status.createEl("p", { text: `From ${profile.sourceDevice} · Updated ${new Date(profile.updatedAt).toLocaleString()}` });
         const counts = status.createDiv({ cls: "sync-setup-counts" });
         for (const [label, value] of [
@@ -347,7 +347,7 @@ class SyncSetupSettings extends PluginSettingTab {
     })();
   }
   private drawScopes(el: HTMLElement, profile: Profile): void {
-    el.createEl("h3", { text: "Plugin scopes" });
+    new Setting(el).setName("Plugin scopes").setHeading();
     el.createEl("p", { text: "Choose where each plugin belongs. Changes to the profile always have a preview." });
     for (const [id, entry] of Object.entries(profile.plugins)) {
       new Setting(el).setName(entry.name).setDesc(`Current: ${scopeNames[entry.scope]}`)
@@ -360,7 +360,7 @@ class SyncSetupSettings extends PluginSettingTab {
   }
   private drawList(el: HTMLElement, differences: Difference[]): void {
     if (!differences.length) return;
-    el.createEl("h3", { text: "Plugin comparison" });
+    new Setting(el).setName("Plugin comparison").setHeading();
     const groups: Array<[Difference["kind"], string]> = [
       ["missing", "Missing"], ["enable", "Needs enabling"], ["disable", "Needs disabling"],
       ["skipped", "Skipped on this device"], ["match", "Matching"]
