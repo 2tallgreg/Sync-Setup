@@ -265,7 +265,6 @@ class SyncSetupSettings extends PluginSettingTab {
     const renderId = ++this.renderId;
     el.empty();
     el.addClass("sync-setup-settings");
-    new Setting(el).setName("Sync Setup").setHeading();
     el.createEl("p", { text: "Your plugin setup, carried by your vault." });
     const status = el.createDiv({ cls: "sync-setup-status" });
     status.setAttribute("aria-live", "polite");
