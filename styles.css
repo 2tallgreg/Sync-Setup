@@ -1,43 +1,43 @@
-.obsyncdian-settings { max-width: 760px; padding-bottom: 32px; }
-.obsyncdian-settings > p, .obsyncdian-scopes > p { color: var(--text-muted); }
-.obsyncdian-settings > h3 { margin: 28px 0 8px; }
-.obsyncdian-status {
+.vaultdeck-settings { max-width: 760px; padding-bottom: 32px; }
+.vaultdeck-settings > p, .vaultdeck-scopes > p { color: var(--text-muted); }
+.vaultdeck-settings > h3 { margin: 28px 0 8px; }
+.vaultdeck-status {
   padding: 20px;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m);
   background: var(--background-secondary);
   margin: 20px 0 24px;
 }
-.obsyncdian-status h3 { margin: 6px 0; }
-.obsyncdian-status p { margin: 6px 0 0; color: var(--text-muted); line-height: 1.5; }
-.obsyncdian-status-error { border-color: var(--text-error); }
-.obsyncdian-status-error details { margin-top: 12px; color: var(--text-muted); }
-.obsyncdian-eyebrow { color: var(--text-muted); font-size: var(--font-smaller); }
-.obsyncdian-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-.obsyncdian-count {
+.vaultdeck-status h3 { margin: 6px 0; }
+.vaultdeck-status p { margin: 6px 0 0; color: var(--text-muted); line-height: 1.5; }
+.vaultdeck-status-error { border-color: var(--text-error); }
+.vaultdeck-status-error details { margin-top: 12px; color: var(--text-muted); }
+.vaultdeck-eyebrow { color: var(--text-muted); font-size: var(--font-smaller); }
+.vaultdeck-counts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.vaultdeck-count {
   display: flex; align-items: baseline; gap: 6px;
   padding: 6px 10px; border-radius: var(--radius-s);
   background: var(--background-primary); font-size: var(--font-smaller);
 }
-.obsyncdian-count strong { font-size: var(--font-ui-medium); }
-.obsyncdian-comparison > h3, .obsyncdian-scopes > h3 { margin: 24px 0 8px; }
-.obsyncdian-group {
+.vaultdeck-count strong { font-size: var(--font-ui-medium); }
+.vaultdeck-comparison > h3, .vaultdeck-scopes > h3 { margin: 24px 0 8px; }
+.vaultdeck-group {
   border-bottom: 1px solid var(--background-modifier-border);
   padding: 12px 0;
 }
-.obsyncdian-group summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
-.obsyncdian-group summary:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 3px; }
-.obsyncdian-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; }
-.obsyncdian-item-detail { color: var(--text-muted); text-align: right; }
-.obsyncdian-item, .obsyncdian-preview-row, .obsyncdian-status { overflow-wrap: anywhere; }
-.obsyncdian-preview-list { max-height: 45vh; overflow: auto; margin: 16px 0; }
-.obsyncdian-preview-row {
+.vaultdeck-group summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.vaultdeck-group summary:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: 3px; }
+.vaultdeck-item { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; }
+.vaultdeck-item-detail { color: var(--text-muted); text-align: right; }
+.vaultdeck-item, .vaultdeck-preview-row, .vaultdeck-status { overflow-wrap: anywhere; }
+.vaultdeck-preview-list { max-height: 45vh; overflow: auto; margin: 16px 0; }
+.vaultdeck-preview-row {
   display: flex; justify-content: space-between; gap: 16px;
   padding: 9px 0; border-bottom: 1px solid var(--background-modifier-border);
 }
-.obsyncdian-preview-row span { color: var(--text-muted); text-align: right; }
-.obsyncdian-lookup-progress { display: block; width: 100%; margin: 18px 0; accent-color: var(--interactive-accent); }
+.vaultdeck-preview-row span { color: var(--text-muted); text-align: right; }
+.vaultdeck-lookup-progress { display: block; width: 100%; margin: 18px 0; accent-color: var(--interactive-accent); }
 @media (max-width: 480px) {
-  .obsyncdian-preview-row, .obsyncdian-item { flex-direction: column; gap: 2px; }
-  .obsyncdian-preview-row span, .obsyncdian-item-detail { text-align: left; }
+  .vaultdeck-preview-row, .vaultdeck-item { flex-direction: column; gap: 2px; }
+  .vaultdeck-preview-row span, .vaultdeck-item-detail { text-align: left; }
 }

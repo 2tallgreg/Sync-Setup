@@ -1,9 +1,9 @@
-# Obsyncdian product brief
+# VaultDeck product brief
 
 ## Promise
 **Your Obsidian setup, on every device.**
 
-Obsyncdian makes the environment around a vault portable: community plugins, enabled state, and eventually eligible plugin settings, themes, snippets, hotkeys, and selected preferences.
+VaultDeck makes the environment around a vault portable: community plugins, enabled state, and eventually eligible plugin settings, themes, snippets, hotkeys, and selected preferences.
 
 ## Principles
 - Vault-first: no separate account/server for MVP.
@@ -14,7 +14,7 @@ Obsyncdian makes the environment around a vault portable: community plugins, ena
 
 ## MVP
 1. Capture installed community plugins and enabled state.
-2. Store a versioned profile at `.obsidian/obsyncdian-profile.json`.
+2. Store a versioned profile at `vaultdeck-profile.json` in the vault root so devices with different config folders can share it.
 3. Compare local state with that profile.
 4. Support scopes: everywhere, desktop, mobile, local.
 5. Show missing plugins and enabled-state drift without making destructive changes.

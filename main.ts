@@ -31,7 +31,7 @@ class PreviewModal extends Modal {
         this.busy = false;
         this.close();
       } catch (error) {
-        new Notice(`Obsyncdian: ${displayError(error)}`, 9000);
+        new Notice(`VaultDeck: ${displayError(error)}`, 9000);
       } finally {
         this.busy = false;
         button.setDisabled(false).setButtonText(action);
@@ -52,7 +52,7 @@ class LookupModal extends Modal {
     super(app);
     this.titleEl.setText("Checking for plugins");
     this.statusEl = this.contentEl.createEl("p", { text: `Looking up install options for ${count} missing ${count === 1 ? "plugin" : "plugins"}. This can take a moment.` });
-    this.progressEl = this.contentEl.createEl("progress", { cls: "obsyncdian-lookup-progress" });
+    this.progressEl = this.contentEl.createEl("progress", { cls: "vaultdeck-lookup-progress" });
     this.progressEl.setAttribute("aria-label", "Checking community plugin listings");
     this.progressEl.removeAttribute("value");
     this.contentEl.createEl("p", { text: "No changes are being made. Close this window to stop the restore preview." });
@@ -67,13 +67,16 @@ class LookupModal extends Modal {
   onClose(): void { this.cancelled = !this.completed; this.contentEl.empty(); }
 }
 
-export default class Obsyncdian extends Plugin {
+export default class VaultDeck extends Plugin {
   settings: LocalSettings = { ...defaults };
   private bridge!: ObsidianPlugins;
-  private tab!: ObsyncdianSettings;
+  private tab!: VaultDeckSettings;
   private applying = false;
   get device(): Device { return Platform.isMobileApp ? "mobile" : "desktop"; }
-  private get path(): string { return `${this.app.vault.configDir}/obsyncdian-profile.json`; }
+  // Keep the shared profile at the vault root so devices with different Obsidian
+  // configuration folders (for example .obsidian and .obsidian-mobile) see it.
+  private get path(): string { return "vaultdeck-profile.json"; }
+  get profilePath(): string { return this.path; }
 
   async onload(): Promise<void> {
     this.bridge = new ObsidianPlugins(this.app);
@@ -83,7 +86,7 @@ export default class Obsyncdian extends Plugin {
       deviceName: typeof saved.deviceName === "string" ? saved.deviceName.slice(0, 80) : "",
       showAdvanced: saved.showAdvanced === true
     };
-    this.tab = new ObsyncdianSettings(this.app, this);
+    this.tab = new VaultDeckSettings(this.app, this);
     this.addSettingTab(this.tab);
     this.addCommand({ id: "use-device-as-source", name: "Use this device as source",
       callback: () => void this.capturePreview() });
@@ -101,7 +104,11 @@ export default class Obsyncdian extends Plugin {
     finally { this.applying = false; }
   }
   private async rawProfile(): Promise<string | null> {
-    return await this.app.vault.adapter.exists(this.path) ? this.app.vault.adapter.read(this.path) : null;
+    if (await this.app.vault.adapter.exists(this.path)) return this.app.vault.adapter.read(this.path);
+    // Read profiles created by the pre-release build once, then write new profiles
+    // at the vault root so devices with separate config folders can share them.
+    const legacyPath = `${this.app.vault.configDir}/obsyncdian-profile.json`;
+    return await this.app.vault.adapter.exists(legacyPath) ? this.app.vault.adapter.read(legacyPath) : null;
   }
   async profile(): Promise<Profile | null> {
     const raw = await this.rawProfile();
@@ -116,8 +123,8 @@ export default class Obsyncdian extends Plugin {
       if (!profile) return void new Notice("No shared profile yet. Use this device as source to create one.");
       const differences = this.differences(profile);
       const count = (kind: Difference["kind"]) => differences.filter(item => item.kind === kind).length;
-      new Notice(`Obsyncdian: ${count("match")} match, ${count("missing")} missing, ${count("enable") + count("disable")} different, ${count("skipped")} skipped.`);
-    } catch (error) { new Notice(`Obsyncdian: ${displayError(error)}`, 9000); }
+      new Notice(`VaultDeck: ${count("match")} match, ${count("missing")} missing, ${count("enable") + count("disable")} different, ${count("skipped")} skipped.`);
+    } catch (error) { new Notice(`VaultDeck: ${displayError(error)}`, 9000); }
   }
 
   async capturePreview(changedScope?: { id: string; scope: Scope }): Promise<void> {
@@ -140,14 +147,14 @@ export default class Obsyncdian extends Plugin {
       new PreviewModal(this.app, changedScope ? "Change plugin scope" : "Use this device as source", el => {
         el.createEl("p", { text: `This will write ${this.path} for your vault sync service to carry to other devices.` });
         el.createEl("p", { text: `${added.length} added · ${updated.length} updated · ${removed.length} removed · ${Object.keys(proposal.plugins).length} total` });
-        const list = el.createDiv({ cls: "obsyncdian-preview-list" });
+        const list = el.createDiv({ cls: "vaultdeck-preview-list" });
         for (const [ids, label, entries] of [
           [added, "Add to profile", proposal.plugins],
           [updated, "Update in profile", proposal.plugins],
           [removed, "Remove from profile", beforeEntries]
         ] as const) {
           for (const id of ids) {
-            const row = list.createDiv({ cls: "obsyncdian-preview-row" });
+            const row = list.createDiv({ cls: "vaultdeck-preview-row" });
             row.createEl("strong", { text: entries[id].name });
             const entry = entries[id];
             const state = `${scopeNames[entry.scope]} · ${entry.enabled ? "Enabled" : "Disabled"}`;
@@ -162,12 +169,12 @@ export default class Obsyncdian extends Plugin {
       }, "Write shared profile", () => this.applyChanges(async () => {
         assertPreviewUnchanged(before, await this.rawProfile(), inventory ?? [], inventory ? this.inventory() : []);
         if (before !== null) await this.app.vault.adapter.write(
-          `${this.app.vault.configDir}/obsyncdian-profile.backup.json`, before
+          "vaultdeck-profile.backup.json", before
         );
         await this.app.vault.adapter.write(this.path, profileText(proposal));
-        new Notice("Obsyncdian profile saved. Your vault sync service can carry it to other devices.");
+        new Notice("VaultDeck profile saved. Your vault sync service can carry it to other devices.");
       }), () => this.refreshSettings()).open();
-    } catch (error) { new Notice(`Obsyncdian: ${displayError(error)}`, 9000); }
+    } catch (error) { new Notice(`VaultDeck: ${displayError(error)}`, 9000); }
   }
 
   async restorePreview(): Promise<void> {
@@ -198,18 +205,18 @@ export default class Obsyncdian extends Plugin {
       new PreviewModal(this.app, "Set up this device", el => {
         el.createEl("p", { text: `Profile from ${profile.sourceDevice} · ${this.device} · Updated ${new Date(profile.updatedAt).toLocaleString()}` });
         el.createEl("p", { text: `${actions.length} changes · ${reviewed.filter(i => i.kind === "match").length} matching · ${reviewed.filter(i => i.kind === "skipped").length} skipped` });
-        const list = el.createEl("div", { cls: "obsyncdian-preview-list" });
+        const list = el.createEl("div", { cls: "vaultdeck-preview-list" });
         for (const [kind, label] of [
           ["missing", "Install"], ["enable", "Enable"], ["disable", "Disable"],
           ["skipped", "Skipped"], ["match", "Already matching"]
         ] as const) {
           const items = reviewed.filter(item => item.kind === kind);
           if (!items.length) continue;
-          const group = list.createEl("details", { cls: "obsyncdian-group" });
+          const group = list.createEl("details", { cls: "vaultdeck-group" });
           group.open = kind !== "match";
           group.createEl("summary", { text: `${label} · ${items.length}` });
           for (const item of items) {
-            const row = group.createDiv({ cls: "obsyncdian-preview-row" });
+            const row = group.createDiv({ cls: "vaultdeck-preview-row" });
             row.createEl("strong", { text: item.entry.name });
             row.createSpan({ text: item.kind === "missing"
               ? item.entry.enabled ? "Install and enable" : "Install, leave disabled"
@@ -237,10 +244,10 @@ export default class Obsyncdian extends Plugin {
             completed++;
           } catch (error) { failures.push(`${item.id}: ${displayError(error)}`); }
         }
-        new Notice(`Obsyncdian: ${completed} changes applied${failures.length ? `; ${failures.length} failed: ${failures.join("; ")}` : "."}`, 12000);
+        new Notice(`VaultDeck: ${completed} changes applied${failures.length ? `; ${failures.length} failed: ${failures.join("; ")}` : "."}`, 12000);
         this.refreshSettings();
       })).open();
-    } catch (error) { new Notice(`Obsyncdian: ${displayError(error)}`, 9000); }
+    } catch (error) { new Notice(`VaultDeck: ${displayError(error)}`, 9000); }
   }
 
   private refreshSettings(): void {
@@ -248,19 +255,19 @@ export default class Obsyncdian extends Plugin {
   }
 }
 
-class ObsyncdianSettings extends PluginSettingTab {
+class VaultDeckSettings extends PluginSettingTab {
   private renderId = 0;
-  constructor(app: App, private plugin: Obsyncdian) { super(app, plugin); }
+  constructor(app: App, private plugin: VaultDeck) { super(app, plugin); }
   display(): void {
     const el = this.containerEl;
     const renderId = ++this.renderId;
     el.empty();
-    el.addClass("obsyncdian-settings");
-    el.createEl("h2", { text: "Obsyncdian" });
+    el.addClass("vaultdeck-settings");
+    el.createEl("h2", { text: "VaultDeck" });
     el.createEl("p", { text: "Your plugin setup, carried by your vault." });
-    const status = el.createDiv({ cls: "obsyncdian-status" });
+    const status = el.createDiv({ cls: "vaultdeck-status" });
     status.setAttribute("aria-live", "polite");
-    const comparison = el.createDiv({ cls: "obsyncdian-comparison" });
+    const comparison = el.createDiv({ cls: "vaultdeck-comparison" });
     el.createEl("h3", { text: "Sync actions" });
     let restoreButton: ButtonComponent | undefined;
     new Setting(el).setName("Set up this device like your other devices")
@@ -281,17 +288,17 @@ class ObsyncdianSettings extends PluginSettingTab {
       new Setting(el).setName("Device label").setDesc("Shown on the profile when you use this device as source.")
         .addText(t => t.setPlaceholder("This device").setValue(this.plugin.settings.deviceName)
           .onChange(async value => { this.plugin.settings.deviceName = value.slice(0, 80); await this.plugin.saveSettings(); }));
-      el.createEl("p", { text: `Profile location: ${this.app.vault.configDir}/obsyncdian-profile.json` });
+      el.createEl("p", { text: `Profile location: ${this.plugin.profilePath}` });
       el.createEl("p", { text: "Settings sync is unavailable in this release. Third-party settings can contain secrets even under ordinary names; none are exported or overwritten." });
     }
-    const scopesArea = el.createDiv({ cls: "obsyncdian-scopes" });
+    const scopesArea = el.createDiv({ cls: "vaultdeck-scopes" });
     status.createEl("h3", { text: "Checking this device…" });
     const showError = (title: string, message: string, error: unknown): void => {
       if (renderId !== this.renderId || !el.isConnected) return;
       restoreButton?.setDisabled(true);
       sourceButton?.setDisabled(true);
       status.empty();
-      status.addClass("obsyncdian-status-error");
+      status.addClass("vaultdeck-status-error");
       status.createEl("h3", { text: title });
       status.createEl("p", { text: message });
       const details = status.createEl("details");
@@ -309,7 +316,7 @@ class ObsyncdianSettings extends PluginSettingTab {
       try {
         if (renderId !== this.renderId || !el.isConnected) return;
         status.empty();
-        status.createDiv({ text: `${this.plugin.device === "mobile" ? "Mobile" : "Desktop"} device · Shared profile`, cls: "obsyncdian-eyebrow" });
+        status.createDiv({ text: `${this.plugin.device === "mobile" ? "Mobile" : "Desktop"} device · Shared profile`, cls: "vaultdeck-eyebrow" });
         if (!profile) {
           status.createEl("h3", { text: "Start with this device" });
           status.createEl("p", { text: "No shared profile yet. Use this device as source to share its plugin setup through your vault." });
@@ -321,19 +328,19 @@ class ObsyncdianSettings extends PluginSettingTab {
         const pending = count("missing") + count("enable") + count("disable");
         status.createEl("h3", { text: pending ? "Changes available for this device" : "No changes to apply on this device" });
         status.createEl("p", { text: `From ${profile.sourceDevice} · Updated ${new Date(profile.updatedAt).toLocaleString()}` });
-        const counts = status.createDiv({ cls: "obsyncdian-counts" });
+        const counts = status.createDiv({ cls: "vaultdeck-counts" });
         for (const [label, value] of [
           ["Matching", count("match")], ["Missing", count("missing")],
           ["State changes", count("enable") + count("disable")], ["Skipped", count("skipped")]
         ] as const) {
-          const badge = counts.createDiv({ cls: "obsyncdian-count" });
+          const badge = counts.createDiv({ cls: "vaultdeck-count" });
           badge.createEl("strong", { text: String(value) });
           badge.createEl("span", { text: label });
         }
         this.drawList(comparison, differences);
         if (this.plugin.settings.showAdvanced) this.drawScopes(scopesArea, profile);
       } catch (error) {
-        showError("Couldn't check this device", "The shared profile is readable, but Obsyncdian could not check installed plugins on this device. No changes were made.", error);
+        showError("Couldn't check this device", "The shared profile is readable, but VaultDeck could not check installed plugins on this device. No changes were made.", error);
       }
     })();
   }
@@ -359,13 +366,13 @@ class ObsyncdianSettings extends PluginSettingTab {
     for (const [kind, title] of groups) {
       const items = differences.filter(item => item.kind === kind);
       if (!items.length) continue;
-      const details = el.createEl("details", { cls: "obsyncdian-group" });
+      const details = el.createEl("details", { cls: "vaultdeck-group" });
       if (kind !== "match") details.open = true;
       details.createEl("summary", { text: `${title} · ${items.length}` });
       for (const item of items) {
-        const row = details.createDiv({ cls: "obsyncdian-item" });
+        const row = details.createDiv({ cls: "vaultdeck-item" });
         row.createSpan({ text: item.entry.name });
-        row.createSpan({ text: item.reason ?? (item.entry.enabled ? "Enabled in profile" : "Disabled in profile"), cls: "obsyncdian-item-detail" });
+        row.createSpan({ text: item.reason ?? (item.entry.enabled ? "Enabled in profile" : "Disabled in profile"), cls: "vaultdeck-item-detail" });
       }
     }
   }

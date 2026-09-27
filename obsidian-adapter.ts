@@ -38,7 +38,7 @@ export class ObsidianPlugins {
   canInstall(): boolean { return typeof this.manager?.installPlugin === "function"; }
 
   async setEnabled(id: string, enabled: boolean): Promise<void> {
-    if (id === "obsyncdian") throw new Error("Obsyncdian cannot manage itself.");
+    if (id === "obsyncdian") throw new Error("VaultDeck cannot manage itself.");
     const method = enabled ? this.manager?.enablePluginAndSave : this.manager?.disablePluginAndSave;
     if (!method) throw new Error("Obsidian cannot change plugin state here.");
     const result = await method.call(this.manager, id);
@@ -93,7 +93,7 @@ export class ObsidianPlugins {
   }
 
   async install(candidate: InstallCandidate): Promise<void> {
-    if (candidate.id === "obsyncdian") throw new Error("Obsyncdian cannot manage itself.");
+    if (candidate.id === "obsyncdian") throw new Error("VaultDeck cannot manage itself.");
     if (!this.manager?.installPlugin) throw new Error("Plugin installation is unavailable.");
     await this.manager.installPlugin(candidate.repo, candidate.manifest.version, candidate.manifest);
   }

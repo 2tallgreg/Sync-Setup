@@ -49,7 +49,7 @@ test("adapter detects silent state-change failures and blocks self-management", 
   await assert.rejects(bridge.setEnabled("calendar", true), /did not enable/);
   await assert.rejects(bridge.setEnabled("obsyncdian", false), /cannot manage itself/);
   await assert.rejects(bridge.install({ id: "obsyncdian", repo: "owner/repo",
-    manifest: { id: "obsyncdian", name: "Obsyncdian", version: "1.0.0" } }), /cannot manage itself/);
+    manifest: { id: "obsyncdian", name: "VaultDeck", version: "1.0.0" } }), /cannot manage itself/);
 });
 
 test("overlapping writes are rejected and the guard recovers after a failure", async () => {
